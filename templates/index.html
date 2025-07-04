@@ -13,9 +13,13 @@
     <a href="{{ url_for('export_csv') }}">Export as CSV</a>
   </div>
 
+  <!-- SEARCH FORM: submits to /search -->
   <div style="margin-top: 20px;">
-    <label for="searchInput">🔍 Search: </label>
-    <input type="text" id="searchInput" placeholder="Search CVE ID, description or severity" />
+    <form method="get" action="{{ url_for('search') }}">
+      <label for="searchInput">🔍 Search: </label>
+      <input type="text" id="searchInput" name="q" placeholder="Search CVE ID, description or severity" />
+      <button type="submit">Search</button>
+    </form>
   </div>
 
   <table>
@@ -31,7 +35,8 @@
       {% for cve in cve_list %}
       <tr>
         <td>
-          <a href="https://nvd.nist.gov/vuln/detail/{{ cve.id }}" target="_blank" rel="noopener noreferrer">
+          <!-- Links to internal CVE detail page -->
+          <a href="{{ url_for('get_vuln', cve_id=cve.id) }}">
             {{ cve.id }}
           </a>
         </td>

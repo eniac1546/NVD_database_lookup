@@ -10,9 +10,7 @@ def get_cve_data(limit=10):
     today = datetime.utcnow()
     thirty_days_ago = today - timedelta(days=30)
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-    headers = {
-        "apiKey": API_KEY
-    }
+    headers = {"apiKey": API_KEY}
 
     params = {
         "resultsPerPage": limit,
@@ -41,3 +39,25 @@ def get_cve_data(limit=10):
     except Exception as e:
         print(f"[!] Failed to fetch CVE data: {e}")
         return []
+
+def get_cve_by_id(cve_id):
+    url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    headers = {"apiKey": API_KEY}
+    params = {"cveId": cve_id}
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        items = data.get("vulnerabilities", [])
+        if not items:
+            return None
+        cve = items[0].get("cve", {})
+        return {
+            "id": cve.get("id"),
+            "description": cve.get("descriptions", [{}])[0].get("value", "No description"),
+            "severity": cve.get("metrics", {}).get("cvssMetricV31", [{}])[0].get("cvssData", {}).get("baseSeverity", "UNKNOWN"),
+            "published_date": cve.get("published", "").split("T")[0]
+        }
+    except Exception as e:
+        print(f"[!] Failed to fetch CVE by ID: {e}")
+        return None
