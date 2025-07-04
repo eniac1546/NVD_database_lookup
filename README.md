@@ -1,2 +1,8 @@
-# NVD_database_lookup
-Build a Python3 application that fetches and displays CVE data from the NVD API in a simple user interface.
+# NVD Database Lookup
+
+A simple Python Flask web app to fetch and display CVEs from the National Vulnerability Database API.
+
+## Usage
+
+1. Clone this repo.
+2. Create a `.env` file with your NVD API key:
