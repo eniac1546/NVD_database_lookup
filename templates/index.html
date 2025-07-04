@@ -30,7 +30,11 @@
     <tbody>
       {% for cve in cve_list %}
       <tr>
-        <td>{{ cve.id }}</td>
+        <td>
+          <a href="https://nvd.nist.gov/vuln/detail/{{ cve.id }}" target="_blank" rel="noopener noreferrer">
+            {{ cve.id }}
+          </a>
+        </td>
         <td>{{ cve.description }}</td>
         <td class="severity {{ cve.severity | lower }}">{{ cve.severity }}</td>
         <td>{{ cve.published_date }}</td>
