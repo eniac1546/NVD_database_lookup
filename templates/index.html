@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CVE Vulnerability Viewer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>CVE Vulnerability Viewer</h1>
+
+  <div>
+    <a href="{{ url_for('export_json') }}">Export as JSON</a>
+    <a href="{{ url_for('export_csv') }}">Export as CSV</a>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <label for="searchInput">🔍 Search: </label>
+    <input type="text" id="searchInput" placeholder="Search CVE ID, description or severity" />
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>CVE ID</th>
+        <th>Description</th>
+        <th>Severity</th>
+        <th>Published Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cve in cve_list %}
+      <tr>
+        <td>{{ cve.id }}</td>
+        <td>{{ cve.description }}</td>
+        <td class="severity {{ cve.severity | lower }}">{{ cve.severity }}</td>
+        <td>{{ cve.published_date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>

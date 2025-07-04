@@ -1,0 +1,80 @@
+/* Base layout */
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+/* Links for export */
+a {
+    display: inline-block;
+    margin-right: 15px;
+    color: #007acc;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Search bar */
+#searchInput {
+    padding: 8px;
+    width: 300px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+thead {
+    background-color: #eaeaea;
+}
+
+th, td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Severity color coding */
+.severity.critical {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+.severity.high {
+    color: #e67e22;
+    font-weight: bold;
+}
+
+.severity.medium {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+.severity.low {
+    color: #27ae60;
+    font-weight: bold;
+}
