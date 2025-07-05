@@ -9,9 +9,46 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    cve_list = get_cve_data(limit=10)
-    print("Fetched CVEs:", cve_list)  # <--- Add this line
-    return render_template("index.html", cve_list=cve_list)
+    # Get 'page' and 'severity' from URL query parameters
+    page = request.args.get('page', default=1, type=int)
+    severity = request.args.get('severity', '')
+
+    # Fetch CVE data using your data-fetching function
+    cve_list, has_next = get_cve_data(limit=50, page=page, severity=severity)
+    print("Fetched CVEs:", cve_list)
+
+    # ---- Error Handling Block ----
+    # Handle string error cases (e.g., rate limit or fetch error)
+    if isinstance(cve_list, str):  
+        return render_template(
+            "index.html",
+            cve_list=[],
+            error=cve_list,
+            page=page,
+            has_next=False,
+            selected_severity=severity
+        )
+    # Handle empty list
+    if not cve_list:
+        return render_template(
+            "index.html",
+            cve_list=[],
+            error="No results found.",
+            page=page,
+            has_next=False,
+            selected_severity=severity
+        )
+    # ---- End Error Handling ----
+
+    # Render normally if no errors
+    return render_template(
+        "index.html",
+        cve_list=cve_list,
+        error=None,
+        page=page,
+        has_next=has_next,
+        selected_severity=severity
+    )
 
 
 @app.route('/vulnerabilities', methods=['GET'])
@@ -38,15 +75,13 @@ def get_vuln(cve_id):
         return render_template("cve_not_found.html", cve_id=cve_id), 404
     return render_template("cve_detail.html", cve=cve)
 
-    # app route to handle search logic, rate ,limit logic, and severity logic 
+
+# app route to handle search logic, rate ,limit logic, and severity logic 
 @app.route('/search', methods=['GET'])
 def search():
-    """
-    Search feature for CVEs by keyword or ID, with severity filter.
-    """
     query = request.args.get('q', '').strip()
     page = request.args.get('page', default=1, type=int)
-    severity = request.args.get('severity', '')   # NEW: read severity from query params
+    severity = request.args.get('severity', '')
 
     if query:
         cve = get_cve_by_id(query)
@@ -54,52 +89,45 @@ def search():
             return render_template(
                 "index.html",
                 cve_list=[], page=page, search_query=query,
-                rate_limited=True, selected_severity=severity  # Pass selected_severity
+                rate_limited=True, selected_severity=severity, has_next=False
             )
         if cve:
-            # NEW: If severity is selected, make sure the found CVE matches
             if severity and cve.get('severity', '').upper() != severity.upper():
                 return render_template(
                     "index.html",
                     cve_list=[], page=page, search_query=query,
-                    selected_severity=severity
+                    selected_severity=severity, has_next=False
                 )
             return render_template("cve_detail.html", cve=cve)
         else:
-            cve_list = get_cve_data(limit=10, page=page, keyword=query, severity=severity)
+            cve_list, has_next = get_cve_data(limit=50, page=page, keyword=query, severity=severity)
             if cve_list == "RATE_LIMIT":
                 return render_template(
                     "index.html",
                     cve_list=[], page=page, search_query=query,
-                    rate_limited=True, selected_severity=severity
+                    rate_limited=True, selected_severity=severity, has_next=False
                 )
             return render_template(
                 "index.html",
                 cve_list=cve_list, page=page, search_query=query,
-                selected_severity=severity
+                selected_severity=severity, has_next=has_next
             )
-    cve_list = get_cve_data(limit=10, page=page, severity=severity)
+    cve_list, has_next = get_cve_data(limit=50, page=page, severity=severity)
     if cve_list == "RATE_LIMIT":
         return render_template(
             "index.html",
             cve_list=[], page=page, rate_limited=True,
-            selected_severity=severity
+            selected_severity=severity, has_next=False
         )
     return render_template(
         "index.html",
-        cve_list=cve_list, page=page, selected_severity=severity
+        cve_list=cve_list,
+        page=page,
+        has_next=has_next,
+        selected_severity=severity
     )
 
 
-
-# app route to see and save the json data
-# @app.route('/export/json')
-# def export_json():
-#     # Export currently displayed CVEs (e.g., latest 10 or search results)
-#     cve_list = get_cve_data(limit=10)  # If you support pagination/filtering, adjust as needed
-#     return jsonify(cve_list)
-
-##alternate code to make the json direct download
 @app.route('/export/json')
 def export_json():
     cve_list = get_cve_data(limit=10)
@@ -124,15 +152,6 @@ def export_csv():
     output.seek(0)
     return send_file(output, mimetype='text/csv', as_attachment=True, download_name='cves.csv')
 
-
-
-# app route for single json/csv download
-# @app.route('/export/json/<cve_id>')
-# def export_json_single(cve_id):
-#     cve = get_cve_by_id(cve_id)
-#     if not cve:
-#         return jsonify({'error': 'CVE not found'}), 404
-#     return jsonify(cve)
 
 @app.route('/export/json/<cve_id>')
 def export_json_single(cve_id):

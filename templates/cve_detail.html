@@ -74,9 +74,12 @@
     <h1 class="cve-id">{{ cve.id }}</h1>
 
     <div class="cve-row">
-      <span class="cve-label">Description:</span>
-      <span class="cve-value">{{ cve.description }}</span>
-    </div>
+  <span class="cve-label">Description:</span>
+  <span class="cve-value" style="white-space: pre-line; word-break: break-word; max-height: 480px; overflow-y: auto; display: block;">
+    {{ cve.description }}
+  </span>
+</div>
+
     <div class="cve-row">
       <span class="cve-label">Severity:</span>
       <span class="cve-value">{{ cve.severity }}</span>

@@ -6,37 +6,47 @@ from datetime import datetime, timedelta
 load_dotenv()
 API_KEY = os.getenv("NVD_API_KEY")
 
-def get_cve_data(limit=10, page=1, keyword=None, severity=None):  # <--- Added severity argument
-    """
-    Fetches CVE data from the NVD API.
-    Supports pagination and optional keyword-based and severity-based search.
+#helper functio to gather total cve count to process the pagination 
 
-    Args:
-        limit (int): Number of results per page.
-        page (int): Page number (1-based).
-        keyword (str): Optional keyword to search (partial match).
-        severity (str): Optional severity filter ("CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN")
-
-    Returns:
-        List of CVE dictionaries with key details.
+def get_total_cve_count(keyword=None, severity=None):
     """
-    today = datetime.utcnow()
-    thirty_days_ago = today - timedelta(days=30)
+    Fetches the total number of CVEs from the NVD API (with optional keyword/severity).
+    """
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     headers = {"apiKey": API_KEY}
+    params = {"resultsPerPage": 1}
+    if keyword:
+        params["keywordSearch"] = keyword
+    if severity:
+        params["cvssV3Severity"] = severity.upper()
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("totalResults", 0)
+    except Exception as e:
+        print(f"[!] Failed to get total CVE count: {e}")
+        return 0
 
-    # --------- Pagination logic ---------
-    start_index = (page - 1) * limit
 
-    # --------- Add 'keywordSearch' param if keyword provided ---------
+def get_cve_data(limit=50, page=1, keyword=None, severity=None):
+    """
+    Fetches CVE data from the NVD API, with reverse paging to show latest first.
+    """
+    url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    headers = {"apiKey": API_KEY}
+    # --------- REVERSE PAGINATION LOGIC ---------
+    total_results = get_total_cve_count(keyword, severity)
+    # Calculate reverse paging start index:
+    start_index = max(total_results - page * limit, 0)
     params = {
-        "resultsPerPage": limit,
-        "startIndex": start_index,
-        "pubStartDate": thirty_days_ago.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
-        "pubEndDate": today.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        "resultsPerPage": limit + 1,
+        "startIndex": start_index
     }
     if keyword:
         params["keywordSearch"] = keyword
+    if severity:
+        params["cvssV3Severity"] = severity.upper()  # Use API's filter param
 
     try:
         response = requests.get(url, headers=headers, params=params)
@@ -46,33 +56,28 @@ def get_cve_data(limit=10, page=1, keyword=None, severity=None):  # <--- Added s
         for item in data.get("vulnerabilities", []):
             cve = item.get("cve", {})
             cve_severity = cve.get("metrics", {}).get("cvssMetricV31", [{}])[0].get("cvssData", {}).get("baseSeverity", "UNKNOWN")
-            
-            # --------- NEW: Filter by severity if specified ---------
-            if keyword:
-                params["keywordSearch"] = keyword
-            
-            if severity:
-                if cve_severity.upper() != severity.upper():
-                    continue
-
+            # No local filter needed; API handles it
             results.append({
                 "id": cve.get("id"),
                 "description": cve.get("descriptions", [{}])[0].get("value", "No description"),
                 "severity": cve_severity,
                 "published_date": cve.get("published", "").split("T")[0]
             })
-
-        return results
+        has_next = start_index > 0  # If there are earlier pages
+        if len(results) > limit:
+            results = results[:limit]
+        return results, has_next
 
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
             print("[!] Rate limit exceeded. Please wait and try again.")
-            return "RATE_LIMIT"
+            return "RATE_LIMIT", False
         print(f"[!] Failed to fetch CVE by ID: {e}")
-        return None
+        return None, False
     except Exception as e:
         print(f"[!] Other error: {e}")
-        return None
+        return None, False
+
 
 
 
