@@ -38,30 +38,58 @@ def get_vuln(cve_id):
         return render_template("cve_not_found.html", cve_id=cve_id), 404
     return render_template("cve_detail.html", cve=cve)
 
-
+    # app route to handle search logic, rate ,limit logic, and severity logic 
 @app.route('/search', methods=['GET'])
 def search():
     """
-    Search feature for CVEs by keyword or ID.
+    Search feature for CVEs by keyword or ID, with severity filter.
     """
     query = request.args.get('q', '').strip()
     page = request.args.get('page', default=1, type=int)
+    severity = request.args.get('severity', '')   # NEW: read severity from query params
 
     if query:
         cve = get_cve_by_id(query)
         if cve == "RATE_LIMIT":
-            return render_template("index.html", cve_list=[], page=page, search_query=query, rate_limited=True)
+            return render_template(
+                "index.html",
+                cve_list=[], page=page, search_query=query,
+                rate_limited=True, selected_severity=severity  # Pass selected_severity
+            )
         if cve:
+            # NEW: If severity is selected, make sure the found CVE matches
+            if severity and cve.get('severity', '').upper() != severity.upper():
+                return render_template(
+                    "index.html",
+                    cve_list=[], page=page, search_query=query,
+                    selected_severity=severity
+                )
             return render_template("cve_detail.html", cve=cve)
         else:
-            cve_list = get_cve_data(limit=10, page=page, keyword=query)
+            cve_list = get_cve_data(limit=10, page=page, keyword=query, severity=severity)
             if cve_list == "RATE_LIMIT":
-                return render_template("index.html", cve_list=[], page=page, search_query=query, rate_limited=True)
-            return render_template("index.html", cve_list=cve_list, page=page, search_query=query)
-    cve_list = get_cve_data(limit=10, page=page)
+                return render_template(
+                    "index.html",
+                    cve_list=[], page=page, search_query=query,
+                    rate_limited=True, selected_severity=severity
+                )
+            return render_template(
+                "index.html",
+                cve_list=cve_list, page=page, search_query=query,
+                selected_severity=severity
+            )
+    cve_list = get_cve_data(limit=10, page=page, severity=severity)
     if cve_list == "RATE_LIMIT":
-        return render_template("index.html", cve_list=[], page=page, rate_limited=True)
-    return render_template("index.html", cve_list=cve_list, page=page)
+        return render_template(
+            "index.html",
+            cve_list=[], page=page, rate_limited=True,
+            selected_severity=severity
+        )
+    return render_template(
+        "index.html",
+        cve_list=cve_list, page=page, selected_severity=severity
+    )
+
 
 
 # app route to see and save the json data

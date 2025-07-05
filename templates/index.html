@@ -13,21 +13,31 @@
     <a href="{{ url_for('export_csv') }}">Export as CSV</a>
   </div>
 
-  <!-- SEARCH FORM: submits to /search -->
+  <!-- SEARCH FORM: submits to /search  and filter for severity-->
   <div style="margin-top: 20px;">
     <form method="get" action="{{ url_for('search') }}">
       <label for="searchInput">🔍 Search: </label>
-      <input type="text" id="searchInput" name="q" placeholder="Search CVE ID, description or severity" />
+      <input type="text" id="searchInput" name="q" placeholder="Search CVE ID or keyword" />
+      <label for="severity" style="margin-left:15px;">Severity:</label>
+      <select id="severity" name="severity">
+        <option value="">All</option>
+        <option value="CRITICAL">Critical</option>
+        <option value="HIGH">High</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="LOW">Low</option>
+        <option value="UNKNOWN">Unknown</option>
+      </select>
       <button type="submit">Search</button>
     </form>
   </div>
+  <!-- code for Showing rate limit exception -->
 
   {% if rate_limited %}
     <div class="error" style="color:red; margin-top:20px; margin-bottom:15px;">
       NVD rate limit exceeded. Please wait a minute and try again.
     </div>
   {% endif %}
-
+  <!-- CVE data table design -->
   <table>
     <thead>
       <tr>
