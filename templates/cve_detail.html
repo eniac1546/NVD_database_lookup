@@ -85,6 +85,10 @@
       <span class="cve-label">Published Date:</span>
       <span class="cve-value">{{ cve.published_date }}</span>
     </div>
+    <div>
+        <a href="{{ url_for('export_json_single', cve_id=cve.id) }}">Export as JSON</a>
+        <a href="{{ url_for('export_csv_single', cve_id=cve.id) }}">Export as CSV</a>
+    </div>
 
     <a href="{{ url_for('index') }}" class="back-link">&larr; Back to List</a>
   </div>

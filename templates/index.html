@@ -22,6 +22,12 @@
     </form>
   </div>
 
+  {% if rate_limited %}
+    <div class="error" style="color:red; margin-top:20px; margin-bottom:15px;">
+      NVD rate limit exceeded. Please wait a minute and try again.
+    </div>
+  {% endif %}
+
   <table>
     <thead>
       <tr>
@@ -32,19 +38,26 @@
       </tr>
     </thead>
     <tbody>
-      {% for cve in cve_list %}
-      <tr>
-        <td>
-          <!-- Links to internal CVE detail page -->
-          <a href="{{ url_for('get_vuln', cve_id=cve.id) }}">
-            {{ cve.id }}
-          </a>
-        </td>
-        <td>{{ cve.description }}</td>
-        <td class="severity {{ cve.severity | lower }}">{{ cve.severity }}</td>
-        <td>{{ cve.published_date }}</td>
-      </tr>
-      {% endfor %}
+      {% if cve_list %}
+        {% for cve in cve_list %}
+        <tr>
+          <td>
+            <a href="{{ url_for('get_vuln', cve_id=cve.id) }}">
+              {{ cve.id }}
+            </a>
+          </td>
+          <td>{{ cve.description }}</td>
+          <td class="severity {{ cve.severity | lower }}">{{ cve.severity }}</td>
+          <td>{{ cve.published_date }}</td>
+        </tr>
+        {% endfor %}
+      {% elif search_query and not rate_limited %}
+        <tr>
+          <td colspan="4" style="text-align:center;">
+            No results found for '{{ search_query }}'.
+          </td>
+        </tr>
+      {% endif %}
     </tbody>
   </table>
 

@@ -6,25 +6,43 @@ from datetime import datetime, timedelta
 load_dotenv()
 API_KEY = os.getenv("NVD_API_KEY")
 
-def get_cve_data(limit=10):
+def get_cve_data(limit=10, page=1, keyword=None):
+    """
+    Fetches CVE data from the NVD API.
+    Supports pagination and optional keyword-based search.
+
+    Args:
+        limit (int): Number of results per page.
+        page (int): Page number (1-based).
+        keyword (str): Optional keyword to search (partial match).
+
+    Returns:
+        List of CVE dictionaries with key details.
+    """
     today = datetime.utcnow()
     thirty_days_ago = today - timedelta(days=30)
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     headers = {"apiKey": API_KEY}
 
+    # --------- CHANGE: Pagination logic ---------
+    start_index = (page - 1) * limit  # Calculate starting index for NVD API
+
+    # --------- CHANGE: Add 'keywordSearch' param if keyword provided ---------
     params = {
         "resultsPerPage": limit,
-        "startIndex": 0,
+        "startIndex": start_index,  # <-- use pagination logic here
         "pubStartDate": thirty_days_ago.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
         "pubEndDate": today.strftime("%Y-%m-%dT%H:%M:%S.000Z")
     }
+    if keyword:  # <-- add keywordSearch parameter if a keyword is provided
+        params["keywordSearch"] = keyword
 
     try:
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         data = response.json()
 
-        # Parse CVEs into simplified format
+        # Parse CVEs into simplified format for frontend rendering
         results = []
         for item in data.get("vulnerabilities", []):
             cve = item.get("cve", {})
@@ -36,9 +54,17 @@ def get_cve_data(limit=10):
             })
 
         return results
+    
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 429:
+            print("[!] Rate limit exceeded. Please wait and try again.")
+            return "RATE_LIMIT"
+        print(f"[!] Failed to fetch CVE by ID: {e}")
+        return None
     except Exception as e:
-        print(f"[!] Failed to fetch CVE data: {e}")
-        return []
+        print(f"[!] Other error: {e}")
+        return None
+
 
 def get_cve_by_id(cve_id):
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
