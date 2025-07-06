@@ -76,6 +76,44 @@ tr:hover {
   min-height: 4.5em;
 }
 
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 35px 0 20px 0;
+  gap: 2px;
+}
+
+.page-arrow, .page-num, .page-current {
+  display: inline-block;
+  min-width: 34px;
+  padding: 7px 0 7px 0;
+  border: 1px solid #e2e6ef;
+  text-align: center;
+  color: #23557c;
+  text-decoration: none;
+  background: #f7fafd;
+  border-radius: 3px;
+  font-size: 1.08em;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.page-arrow:hover, .page-num:hover {
+  background: #e9f3ff;
+}
+
+.page-current {
+  background: #194165;
+  color: #fff;
+  font-weight: 600;
+  cursor: default;
+  border-radius: 4px;
+  border: 1px solid #194165;
+  pointer-events: none;
+}
+
+
 
 /* Severity color coding */
 .severity.critical {

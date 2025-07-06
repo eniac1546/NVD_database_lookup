@@ -92,27 +92,59 @@
     </tbody>
   </table>
 
-  <div style="margin-top: 30px; text-align: center;">
-    {% set extra_args = {} %}
-    {% if selected_severity %}
-      {% set _ = extra_args.update({'severity': selected_severity}) %}
-    {% endif %}
-    {% if search_query %}
-      {% set _ = extra_args.update({'q': search_query}) %}
-    {% endif %}
+  {% if total_pages > 1 %}
+{% set page_window = 2 %}
+{% set start_page = page - page_window %}
+{% set end_page = page + page_window %}
 
+{% if start_page < 1 %}
+    {% set end_page = end_page + (1 - start_page) %}
+    {% set start_page = 1 %}
+{% endif %}
+{% if end_page > total_pages %}
+    {% set start_page = start_page - (end_page - total_pages) %}
+    {% set end_page = total_pages %}
+{% endif %}
+{% if start_page < 1 %}
+    {% set start_page = 1 %}
+{% endif %}
+
+{% set extra_args = {} %}
+{% if selected_severity %}
+  {% set _ = extra_args.update({'severity': selected_severity}) %}
+{% endif %}
+{% if search_query %}
+  {% set _ = extra_args.update({'q': search_query}) %}
+{% endif %}
+
+<div style="text-align: center; margin: 35px 0;">
+    <!-- First and Previous buttons -->
     {% if page > 1 %}
-      <a href="{{ url_for('search' if search_query else 'index', page=page-1, **extra_args) }}">Previous</a>
+      <a href="{{ url_for(request.endpoint, page=1, **extra_args) }}">&laquo;</a>
+      <a href="{{ url_for(request.endpoint, page=page-1, **extra_args) }}">&lt;</a>
     {% endif %}
 
-    <span style="margin: 0 15px;">Page {{ page }}</span>
+    <!-- Page number buttons -->
+    {% for p in range(start_page, end_page+1) %}
+      {% if p == page %}
+        <span style="background:#1976d2;color:white;border-radius:4px;padding:8px 15px;font-weight:600;display:inline-block;margin:0 2px;">{{ p }}</span>
+      {% else %}
+        <a href="{{ url_for(request.endpoint, page=p, **extra_args) }}" style="border-radius:4px;padding:8px 15px;display:inline-block;margin:0 2px;background:#f1f1f1;">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
 
-    {% if has_next %}
-      <a href="{{ url_for('search' if search_query else 'index', page=page+1, **extra_args) }}">Next</a>
+    <!-- Next and Last buttons -->
+    {% if page < total_pages %}
+      <a href="{{ url_for(request.endpoint, page=page+1, **extra_args) }}">&gt;</a>
+      <a href="{{ url_for(request.endpoint, page=total_pages, **extra_args) }}">&raquo;</a>
     {% endif %}
-  </div>
+</div>
 
 
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
+{% endif %}
+
+
+
+  <!--<script src="{{ url_for('static', filename='main.js') }}"></script> -->
 </body>
 </html>
