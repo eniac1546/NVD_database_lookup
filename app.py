@@ -9,25 +9,49 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    # Get 'page' and 'severity' from URL query parameters
     page = request.args.get('page', default=1, type=int)
     severity = request.args.get('severity', '')
 
-    # Fetch CVE data using your data-fetching function
-    cve_list, has_next = get_cve_data(limit=50, page=page, severity=severity)
-    print("Fetched CVEs:", cve_list)
+    # Fetch CVE data
+    result = get_cve_data(limit=10, page=page, severity=severity)
+    if len(result) == 3:
+        cve_list, has_next, total_pages = result
+    else:
+        cve_list, has_next = result
+        total_pages = 1  # fallback
 
-    # ---- Error Handling Block ----
-    # Handle string error cases (e.g., rate limit or fetch error)
-    if isinstance(cve_list, str):  
+    # Handle errors (rate limit, string error, etc)
+    if isinstance(cve_list, str):
+        error_msg = (
+            "NVD rate limit exceeded. Please wait a minute and try again."
+            if cve_list == "RATE_LIMIT"
+            else cve_list
+        )
         return render_template(
             "index.html",
             cve_list=[],
-            error=cve_list,
+            error=error_msg,
             page=page,
             has_next=False,
             selected_severity=severity
         )
+
+     # Handle page exceeded
+    if total_pages and page > total_pages:
+        last_result = get_cve_data(limit=10, page=total_pages, severity=severity)
+        if len(last_result) == 3:
+            last_page_cves, has_next, _ = last_result
+        else:
+            last_page_cves, has_next = last_result
+        return render_template(
+            "index.html",
+            cve_list=last_page_cves,
+            error="PAGE_EXCEEDED",
+            page=total_pages,
+            has_next=has_next,
+            selected_severity=severity
+        )
+
     # Handle empty list
     if not cve_list:
         return render_template(
@@ -38,7 +62,6 @@ def index():
             has_next=False,
             selected_severity=severity
         )
-    # ---- End Error Handling ----
 
     # Render normally if no errors
     return render_template(
@@ -51,15 +74,16 @@ def index():
     )
 
 
+
 @app.route('/vulnerabilities', methods=['GET'])
 def get_vulns():
     """
     Fetch all CVEs from the NVD API.
-    Optional query param: limit (default 50)
+    Optional query param: limit (default 10)
     Example: /vulnerabilities?limit=100
 
     """
-    limit = request.args.get('limit', default=50, type=int)
+    limit = request.args.get('limit', default=10, type=int)
     cve_list = get_cve_data(limit=limit)
     return jsonify(cve_list)
 
@@ -76,54 +100,154 @@ def get_vuln(cve_id):
     return render_template("cve_detail.html", cve=cve)
 
 
-# app route to handle search logic, rate ,limit logic, and severity logic 
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('q', '').strip()
     page = request.args.get('page', default=1, type=int)
     severity = request.args.get('severity', '')
 
+    # If searching for a specific CVE ID first
     if query:
         cve = get_cve_by_id(query)
         if cve == "RATE_LIMIT":
             return render_template(
                 "index.html",
-                cve_list=[], page=page, search_query=query,
-                rate_limited=True, selected_severity=severity, has_next=False
+                cve_list=[],
+                error="NVD rate limit exceeded. Please wait a minute and try again.",
+                page=page,
+                search_query=query,
+                has_next=False,
+                total_pages=1,
+                selected_severity=severity
             )
         if cve:
             if severity and cve.get('severity', '').upper() != severity.upper():
                 return render_template(
                     "index.html",
-                    cve_list=[], page=page, search_query=query,
-                    selected_severity=severity, has_next=False
+                    cve_list=[],
+                    error=f"No results found for '{query}' with severity '{severity}'." if severity else f"No results found for '{query}'.",
+                    page=page,
+                    search_query=query,
+                    has_next=False,
+                    total_pages=1,
+                    selected_severity=severity
                 )
             return render_template("cve_detail.html", cve=cve)
         else:
-            cve_list, has_next = get_cve_data(limit=50, page=page, keyword=query, severity=severity)
-            if cve_list == "RATE_LIMIT":
+            cve_list, has_next, total_pages = get_cve_data(limit=10, page=page, keyword=query, severity=severity)
+
+            # ---------- PAGE EXCEEDS HANDLING FOR QUERY BRANCH ----------
+            if total_pages > 0 and page > total_pages:
+                cve_list, has_next, _ = get_cve_data(limit=10, page=total_pages, keyword=query, severity=severity)
+                if isinstance(cve_list, str):
+                    return render_template(
+                        "index.html",
+                        cve_list=[],
+                        error="NVD rate limit exceeded. Please wait a minute and try again." if cve_list == "RATE_LIMIT" else cve_list,
+                        page=total_pages,
+                        search_query=query,
+                        has_next=False,
+                        total_pages=total_pages,
+                        selected_severity=severity
+                    )
                 return render_template(
                     "index.html",
-                    cve_list=[], page=page, search_query=query,
-                    rate_limited=True, selected_severity=severity, has_next=False
+                    cve_list=cve_list,
+                    error="PAGE_EXCEEDED",
+                    page=total_pages,
+                    search_query=query,
+                    has_next=False,
+                    total_pages=total_pages,
+                    selected_severity=severity
+                    )
+            # -----------------------------------------------------------
+
+            if isinstance(cve_list, str):  # Handles RATE_LIMIT or any string error
+                return render_template(
+                    "index.html",
+                    cve_list=[],
+                    error="NVD rate limit exceeded. Please wait a minute and try again." if cve_list == "RATE_LIMIT" else cve_list,
+                    page=page,
+                    search_query=query,
+                    has_next=False,
+                    total_pages=total_pages,
+                    selected_severity=severity
+                )
+            if not cve_list:
+                return render_template(
+                    "index.html",
+                    cve_list=[],
+                    error=f"No results found for '{query}'.",
+                    page=page,
+                    search_query=query,
+                    has_next=False,
+                    total_pages=total_pages,
+                    selected_severity=severity
                 )
             return render_template(
                 "index.html",
-                cve_list=cve_list, page=page, search_query=query,
-                selected_severity=severity, has_next=has_next
+                cve_list=cve_list,
+                error=None,
+                page=page,
+                search_query=query,
+                has_next=has_next,
+                total_pages=total_pages,
+                selected_severity=severity
             )
-    cve_list, has_next = get_cve_data(limit=50, page=page, severity=severity)
-    if cve_list == "RATE_LIMIT":
+    # If no query, fallback to paged browse (same as /)
+    cve_list, has_next, total_pages = get_cve_data(limit=10, page=page, severity=severity)
+
+    # ---------- PAGE EXCEEDS HANDLING FOR NO QUERY BRANCH ----------
+    if total_pages > 0 and page > total_pages:
+        cve_list, has_next, _ = get_cve_data(limit=10, page=total_pages, severity=severity)
+        if isinstance(cve_list, str):
+            return render_template(
+                "index.html",
+                cve_list=[],
+                error="NVD rate limit exceeded. Please wait a minute and try again." if cve_list == "RATE_LIMIT" else cve_list,
+                page=total_pages,
+                has_next=False,
+                total_pages=total_pages,
+                selected_severity=severity
+            )
         return render_template(
             "index.html",
-            cve_list=[], page=page, rate_limited=True,
-            selected_severity=severity, has_next=False
+            cve_list=cve_list,
+            error="PAGE_EXCEEDED",
+            page=total_pages,
+            has_next=False,
+            total_pages=total_pages,
+            selected_severity=severity
+        )
+    # --------------------------------------------------------------
+
+    if isinstance(cve_list, str):
+        return render_template(
+            "index.html",
+            cve_list=[],
+            error="NVD rate limit exceeded. Please wait a minute and try again." if cve_list == "RATE_LIMIT" else cve_list,
+            page=page,
+            has_next=False,
+            total_pages=total_pages,
+            selected_severity=severity
+        )
+    if not cve_list:
+        return render_template(
+            "index.html",
+            cve_list=[],
+            error="No results found.",
+            page=page,
+            has_next=False,
+            total_pages=total_pages,
+            selected_severity=severity
         )
     return render_template(
         "index.html",
         cve_list=cve_list,
+        error=None,
         page=page,
         has_next=has_next,
+        total_pages=total_pages,
         selected_severity=severity
     )
 
@@ -141,7 +265,7 @@ def export_json():
 
 @app.route('/export/csv')
 def export_csv():
-    cve_list = get_cve_data(limit=10)
+    cve_list, _, _ = get_cve_data(limit=10)
     si = io.StringIO()
     cw = csv.writer(si)
     cw.writerow(['CVE ID', 'Description', 'Severity', 'Published Date'])

@@ -6,7 +6,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h1>CVE Vulnerability Viewer</h1>
+  <h1>
+  <a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit; cursor: pointer;">
+    CVE Vulnerability Viewer
+  </a>
+</h1>
 
   <div>
     <a href="{{ url_for('export_json') }}">Export as JSON</a>
@@ -32,11 +36,28 @@
   </div>
   <!-- code for Showing rate limit exception -->
 
-  {% if rate_limited %}
+    {% if error == "RATE_LIMIT" %}
     <div class="error" style="color:red; margin-top:20px; margin-bottom:15px;">
       NVD rate limit exceeded. Please wait a minute and try again.
     </div>
-  {% endif %}
+    {% elif error == "PAGE_EXCEEDED" %}
+    <div class="error" style="color:#947600; background:#fffbe5; margin-top:20px; margin-bottom:15px; border-radius:6px; padding:12px 20px;">
+      No more results: You have exceeded the available number of pages. Showing last page.
+    </div>
+    {% elif error %}
+    <div class="error" style="color:red; margin-top:20px; margin-bottom:15px;">
+      {{ error }}
+    </div>
+    {% endif %}
+
+
+    {% if selected_severity and selected_severity.upper() == "UNKNOWN" %}
+    <div style="background: #fffbe5; color: #947600; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+    <strong>Note:</strong> Due to API limitations, only a partial set of 'UNKNOWN' severity results is shown.
+    </div>
+    {% endif %}
+
+
   <!-- CVE data table design -->
   <table>
     <thead>
@@ -61,7 +82,7 @@
           <td>{{ cve.published_date }}</td>
         </tr>
         {% endfor %}
-      {% elif search_query and not rate_limited %}
+      {% elif search_query and not error %}
         <tr>
           <td colspan="4" style="text-align:center;">
             No results found for '{{ search_query }}'.
@@ -72,14 +93,22 @@
   </table>
 
   <div style="margin-top: 30px; text-align: center;">
+    {% set extra_args = {} %}
+    {% if selected_severity %}
+      {% set _ = extra_args.update({'severity': selected_severity}) %}
+    {% endif %}
+    {% if search_query %}
+      {% set _ = extra_args.update({'q': search_query}) %}
+    {% endif %}
+
     {% if page > 1 %}
-        <a href="{{ url_for('search', q=search_query, page=page-1, severity=selected_severity) if search_query else url_for('index', page=page-1, severity=selected_severity) }}">Previous</a>
+      <a href="{{ url_for('search' if search_query else 'index', page=page-1, **extra_args) }}">Previous</a>
     {% endif %}
 
     <span style="margin: 0 15px;">Page {{ page }}</span>
 
     {% if has_next %}
-        <a href="{{ url_for('search', q=search_query, page=page+1, severity=selected_severity) if search_query else url_for('index', page=page+1, severity=selected_severity) }}">Next</a>
+      <a href="{{ url_for('search' if search_query else 'index', page=page+1, **extra_args) }}">Next</a>
     {% endif %}
   </div>
 
