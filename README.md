@@ -1,9 +1,9 @@
-# project: CVE Vulnerability Viewer
-## description: 
+# Project: CVE Vulnerability Viewer - NVD_database_lookup
+## Description: 
   A Python Flask application to fetch, display, and export CVE data from the National Vulnerability Database (NVD).
   Supports local development with .env or production on AWS EC2 using Secrets Manager.
 
-## prerequisites:
+## Prerequisites:
   - Python 3.7+
   - pip
   - NVD API Key (https://nvd.nist.gov/developers/request-an-api-key)
@@ -14,12 +14,12 @@
 ![alt text](images/1.png)
 ![alt text](images/2.png)
 
-### local_development:
-  steps:
-    - step: Clone the repository
-      commands:
-        - git clone https://github.com/eniac1546/NVD_database_lookup.git
-        - cd NVD_database_lookup
+## Local Development:
+### steps:
+#### Clone the repository
+##### commands:
+###### git clone https://github.com/eniac1546/NVD_database_lookup.git
+cd NVD_database_lookup
     - step: Create and activate a virtual environment
       commands:
         - python3 -m venv .venv
