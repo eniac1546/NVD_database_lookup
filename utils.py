@@ -39,10 +39,6 @@ def get_secret_api_key(secret_name="nvd_api_key_secret", key="NVD_API_KEY", regi
 # API Key Variable:
 API_KEY = get_secret_api_key()
 
-#API_KEY = os.getenv("NVD_API_KEY")
-#print(f"[API LOG] NVD API call {API_KEY[:6]}***")
-#print(f"Loaded API_KEY: {API_KEY[:6]}***")
-
 NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 BATCH_SIZE = 2000
 SAFE_SLEEP = 1   # seconds between requests
@@ -147,24 +143,6 @@ def get_cve_by_id(cve_id):
         if cve["id"] == cve_id:
             return cve
     return None
-
-def export_cves(fmt="csv", severity=None, keyword=None):
-    cves, _ = filter_cve_data(severity=severity, keyword=keyword, page=1, limit=len(cve_cache))
-    if fmt == "csv":
-        import csv
-        import io
-        output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=["id", "description", "severity", "published_date"])
-        writer.writeheader()
-        for row in cves:
-            writer.writerow(row)
-        return output.getvalue()
-    elif fmt == "json":
-        import json
-        return json.dumps(cves, indent=2)
-    else:
-        raise ValueError("Unsupported export format")
-
 
 def get_latest_cached_date():
     # Returns the latest published date in cache (ISO string, e.g. '2024-07-04')

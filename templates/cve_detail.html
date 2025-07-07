@@ -4,82 +4,17 @@
   <meta charset="UTF-8">
   <title>{{ cve.id }} – CVE Details</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    body {
-      background: #f7f7f9;
-      font-family: 'Segoe UI', Arial, sans-serif;
-    }
-    .cve-detail-card {
-      max-width: 850px;
-      margin: 40px auto;
-      padding: 40px 40px 30px 40px;
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(30,60,100,0.12);
-    }
-    .cve-id {
-      color: #2186eb;
-      font-weight: bold;
-      margin-bottom: 30px;
-      font-size: 2.3em;
-    }
-    .cve-row {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 22px;
-    }
-    .cve-label {
-      min-width: 165px;
-      font-weight: 700;
-      color: #1a1a1a;
-      margin-right: 1.2em;
-      line-height: 1.5;
-      text-align: left;
-      font-size: 1.1em;
-    }
-    .cve-value {
-      flex: 1;
-      color: #444;
-      line-height: 1.6;
-      font-size: 1.13em;
-    }
-    .back-link {
-      color: #2186eb;
-      font-weight: bold;
-      text-decoration: none;
-      font-size: 1.18em;
-      margin-top: 1.2em;
-      display: inline-block;
-    }
-    .back-link:hover {
-      text-decoration: underline;
-    }
-
-    @media (max-width: 600px) {
-      .cve-detail-card {
-        padding: 18px 6vw 18px 6vw;
-      }
-      .cve-row {
-        flex-direction: column;
-        margin-bottom: 18px;
-      }
-      .cve-label {
-        margin-bottom: 2px;
-      }
-    }
-  </style>
 </head>
 <body>
   <div class="cve-detail-card">
     <h1 class="cve-id">{{ cve.id }}</h1>
 
     <div class="cve-row">
-  <span class="cve-label">Description:</span>
-  <span class="cve-value" style="white-space: pre-line; word-break: break-word; max-height: 480px; overflow-y: auto; display: block;">
-    {{ cve.description }}
-  </span>
-</div>
-
+      <span class="cve-label">Description:</span>
+      <span class="cve-value cve-description-box">
+        {{ cve.description }}
+      </span>
+    </div>
     <div class="cve-row">
       <span class="cve-label">Severity:</span>
       <span class="cve-value">{{ cve.severity }}</span>
@@ -88,11 +23,10 @@
       <span class="cve-label">Published Date:</span>
       <span class="cve-value">{{ cve.published_date }}</span>
     </div>
-    <a href="https://nvd.nist.gov/vuln/detail/{{ cve.id }}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 18px;background:#103e63;color:#fff;border-radius:6px;text-decoration:none;margin-top:18px;">
-    View Full CVE Details on NVD &rarr;
-</a>
 
-
+    <a href="https://nvd.nist.gov/vuln/detail/{{ cve.id }}" target="_blank" rel="noopener" class="nvd-link-btn">
+      View Full CVE Details on NVD &rarr;
+    </a>
     <div>
         <a href="{{ url_for('export_json', cve_id=cve.id) }}">Export as JSON</a>
         <a href="{{ url_for('export_csv', cve_id=cve.id) }}">Export as CSV</a>

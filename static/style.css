@@ -6,11 +6,47 @@ body {
     color: #333;
 }
 
+.search-form-container {
+  margin-top: 20px;
+}
+
 h1 {
     font-size: 28px;
     margin-bottom: 20px;
     color: #2c3e50;
 }
+
+.header-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.search-form-container {
+  margin-top: 20px;
+}
+.error-rate-limit {
+  color: red;
+  margin-top: 20px;
+  margin-bottom: 15px;
+}
+.error-page-exceeded {
+  color: #947600;
+  background: #fffbe5;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  padding: 12px 20px;
+}
+.error-generic {
+  color: red;
+  margin-top: 20px;
+  margin-bottom: 15px;
+}
+.no-results-cell {
+  text-align: center;
+}
+
 
 /* Links for export */
 a {
@@ -65,17 +101,6 @@ tr:hover {
     background-color: #f1f1f1;
 }
 
-.cve-description {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;  
-  line-clamp: 3;          
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal;
-  max-width: 700px;
-  min-height: 4.5em;
-}
 .pagination {
   display: flex;
   justify-content: center;
@@ -134,4 +159,82 @@ tr:hover {
 .severity.low {
     color: #27ae60;
     font-weight: bold;
+}
+/* --- CVE Detail Card Styles --- */
+.cve-detail-card {
+  max-width: 850px;
+  margin: 40px auto;
+  padding: 40px 40px 30px 40px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(30,60,100,0.12);
+}
+.cve-description-box {
+  white-space: pre-line;
+  word-break: break-word;
+  max-height: 480px;
+  overflow-y: auto;
+  display: block;
+}
+.cve-id {
+  color: #2186eb;
+  font-weight: bold;
+  margin-bottom: 30px;
+  font-size: 2.3em;
+}
+.cve-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+.cve-label {
+  min-width: 165px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-right: 1.2em;
+  line-height: 1.5;
+  text-align: left;
+  font-size: 1.1em;
+}
+.cve-value {
+  flex: 1;
+  color: #444;
+  line-height: 1.6;
+  font-size: 1.13em;
+}
+.back-link {
+  color: #2186eb;
+  font-weight: bold;
+  text-decoration: none;
+  font-size: 1.18em;
+  margin-top: 1.2em;
+  display: inline-block;
+}
+.back-link:hover {
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .cve-detail-card {
+    padding: 18px 6vw 18px 6vw;
+  }
+  .cve-row {
+    flex-direction: column;
+    margin-bottom: 18px;
+  }
+  .cve-label {
+    margin-bottom: 2px;
+  }
+}
+.nvd-link-btn {
+  display: inline-block;
+  padding: 8px 18px;
+  background: #103e63;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  margin-top: 18px;
+}
+.nvd-link-btn:hover {
+  background: #1976d2;
+  color: #fff;
 }

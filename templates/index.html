@@ -7,11 +7,10 @@
 </head>
 <body>
   <h1>
-  <a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit; cursor: pointer;">
-    CVE Vulnerability Viewer
-  </a>
-</h1>
-
+    <a href="{{ url_for('index') }}" class="header-link">
+      CVE Vulnerability Viewer
+    </a>
+  </h1>
   <div>
     <a href="{{ url_for('export_json', q=search_query, severity=selected_severity, page=page) }}">Export Current page (JSON)</a>
     <a href="{{ url_for('export_csv', q=search_query, severity=selected_severity, page=page) }}">Export Current page (CSV)</a>
@@ -20,12 +19,12 @@
     <a href="{{ url_for('export_csv', q=search_query, severity=selected_severity) }}">Export All Results (CSV)</a>
   </div>
 
-  <!-- SEARCH FORM: submits to /search  and filter for severity-->
-  <div style="margin-top: 20px;">
+  <!-- SEARCH FORM: submits to /search and filter for severity-->
+  <div class="search-form-container">
     <form method="get" action="{{ url_for('search') }}">
       <label for="searchInput">🔍 Search: </label>
       <input type="text" id="searchInput" name="q" placeholder="Search CVE ID or keyword" value="{{ search_query | default('') }}" />
-      <label for="severity" style="margin-left:15px;">Severity:</label>
+      <label for="severity" class="severity-label">Severity:</label>
       <select id="severity" name="severity">
         <option value="" {% if not selected_severity %}selected{% endif %}>All</option>
         <option value="CRITICAL" {% if selected_severity=='CRITICAL' %}selected{% endif %}>Critical</option>
@@ -37,22 +36,21 @@
       <button type="submit">Search</button>
     </form>
   </div>
-  <!-- code for Showing rate limit exception -->
 
-    {% if error == "RATE_LIMIT" %}
-    <div class="error" style="color:red; margin-top:20px; margin-bottom:15px;">
+  <!-- Error Messages -->
+  {% if error == "RATE_LIMIT" %}
+    <div class="error error-rate-limit">
       NVD rate limit exceeded. Please wait a minute and try again.
     </div>
-    {% elif error == "PAGE_EXCEEDED" %}
-    <div class="error" style="color:#947600; background:#fffbe5; margin-top:20px; margin-bottom:15px; border-radius:6px; padding:12px 20px;">
+  {% elif error == "PAGE_EXCEEDED" %}
+    <div class="error error-page-exceeded">
       No more results: You have exceeded the available number of pages. Showing last page.
     </div>
-    {% elif error %}
-    <div class="error" style="color:red; margin-top:20px; margin-bottom:15px;">
+  {% elif error %}
+    <div class="error error-generic">
       {{ error }}
     </div>
-    {% endif %}
-
+  {% endif %}
 
   <!-- CVE data table design -->
   <table>
@@ -80,7 +78,7 @@
         {% endfor %}
       {% elif search_query and not error %}
         <tr>
-          <td colspan="4" style="text-align:center;">
+          <td colspan="4" class="no-results-cell">
             No results found for '{{ search_query }}'.
           </td>
         </tr>
@@ -113,26 +111,26 @@
   {% set _ = extra_args.update({'q': search_query}) %}
 {% endif %}
 
-<div style="text-align: center; margin: 35px 0;">
+<div class="pagination">
     <!-- First and Previous buttons -->
     {% if page > 1 %}
-      <a href="{{ url_for(request.endpoint, page=1, **extra_args) }}">&laquo;</a>
-      <a href="{{ url_for(request.endpoint, page=page-1, **extra_args) }}">&lt;</a>
+      <a href="{{ url_for(request.endpoint, page=1, **extra_args) }}" class="page-arrow">&laquo;</a>
+      <a href="{{ url_for(request.endpoint, page=page-1, **extra_args) }}" class="page-arrow">&lt;</a>
     {% endif %}
 
     <!-- Page number buttons -->
     {% for p in range(start_page, end_page+1) %}
       {% if p == page %}
-        <span style="background:#1976d2;color:white;border-radius:4px;padding:8px 15px;font-weight:600;display:inline-block;margin:0 2px;">{{ p }}</span>
+        <span class="page-current">{{ p }}</span>
       {% else %}
-        <a href="{{ url_for(request.endpoint, page=p, **extra_args) }}" style="border-radius:4px;padding:8px 15px;display:inline-block;margin:0 2px;background:#f1f1f1;">{{ p }}</a>
+        <a href="{{ url_for(request.endpoint, page=p, **extra_args) }}" class="page-num">{{ p }}</a>
       {% endif %}
     {% endfor %}
 
     <!-- Next and Last buttons -->
     {% if page < total_pages %}
-      <a href="{{ url_for(request.endpoint, page=page+1, **extra_args) }}">&gt;</a>
-      <a href="{{ url_for(request.endpoint, page=total_pages, **extra_args) }}">&raquo;</a>
+      <a href="{{ url_for(request.endpoint, page=page+1, **extra_args) }}" class="page-arrow">&gt;</a>
+      <a href="{{ url_for(request.endpoint, page=total_pages, **extra_args) }}" class="page-arrow">&raquo;</a>
     {% endif %}
 </div>
 {% endif %}

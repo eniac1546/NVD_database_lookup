@@ -16,10 +16,7 @@ def index():
     rate_limit_error = update_cache_with_latest_cves()   # <-- capture the return value here!
     page = request.args.get('page', default=1, type=int)
     severity = request.args.get('severity', '')
-
     cve_list, total_pages = filter_cve_data(severity=severity, page=page, limit=10)
-    has_next = page < total_pages
-
     error = None  # default value
     if rate_limit_error == "RATE_LIMIT":
         error = "RATE_LIMIT"
@@ -28,13 +25,11 @@ def index():
     # Handle page exceeded
     if total_pages and page > total_pages:
         cve_list, total_pages = filter_cve_data(severity=severity, page=total_pages, limit=10)
-        has_next = False
         return render_template(
             "index.html",
             cve_list=cve_list,
             error="PAGE_EXCEEDED",
             page=total_pages,
-            has_next=has_next,
             selected_severity=severity,
             total_pages=total_pages
         )
@@ -46,7 +41,6 @@ def index():
             cve_list=[],
             error=error,
             page=page,
-            has_next=False,
             selected_severity=severity,
             total_pages=total_pages
         )
@@ -57,7 +51,6 @@ def index():
         cve_list=cve_list,
         error=None,
         page=page,
-        has_next=has_next,
         selected_severity=severity,
         total_pages=total_pages
     )
@@ -117,9 +110,7 @@ def filter_route():
     page = request.args.get('page', 1, type=int)
     severity = request.args.get('severity', '').strip()
     keyword = request.args.get('q', '').strip()
-
     cve_list, total_pages = filter_cve_data(severity=severity, keyword=keyword, page=page, limit=10)
-    has_next = page < total_pages
 
     error = None
     if not cve_list:
@@ -127,7 +118,6 @@ def filter_route():
 
     if total_pages > 0 and page > total_pages:
         cve_list, total_pages = filter_cve_data(severity=severity, keyword=keyword, page=total_pages, limit=10)
-        has_next = False
         error = "PAGE_EXCEEDED"
         page = total_pages
 
@@ -136,7 +126,6 @@ def filter_route():
         cve_list=cve_list,
         error=error,
         page=page,
-        has_next=has_next,
         total_pages=total_pages,
         selected_severity=severity,
         search_query=keyword
