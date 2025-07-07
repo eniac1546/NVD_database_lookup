@@ -11,12 +11,13 @@
   - EC2 Instance (for production)
   - AWS Secrets Manager access (for production)
 ## Design
-### Sequence diagram
-
-![alt text](images/1.png)
 
 ### System Design
+![alt text](images/1.png)
+### Sequence diagram
 ![alt text](images/2.png)
+### Data Flow Diagram
+![alt text](images/3.png)
 
 ## Local Development:
     Clone the repository
@@ -60,15 +61,16 @@
     Update and install dependencies
       commands:
         - sudo apt update
-        - sudo apt install python3-pip python3-venv tmux -y
+        - sudo apt install python3
+        - sudo apt install tmux
     Clone project and set up environment
       commands:
         - git clone https://github.com/eniac1546/NVD_database_lookup.git
         - cd NVD_database_lookup
-        - python3 -m venv venv
+        - python3 -m venv .venv
         - source venv/bin/activate
         - pip install -r requirements.txt
-        - rm -f .env   # Remove .env to force AWS Secrets Manager usage
+        - rm -f .env   # Remove .env to force AWS Secrets Manager usage if you see .env on the project directory.
     Run Flask app in tmux session in-case of session disconnect
       commands:
         - tmux new -s flaskapp
