@@ -13,15 +13,18 @@
 </h1>
 
   <div>
-    <a href="{{ url_for('export_json') }}">Export as JSON</a>
-    <a href="{{ url_for('export_csv') }}">Export as CSV</a>
+    <a href="{{ url_for('export_json', q=search_query, severity=selected_severity, page=page) }}">Export Current page (JSON)</a>
+    <a href="{{ url_for('export_csv', q=search_query, severity=selected_severity, page=page) }}">Export Current page (CSV)</a>
+    <!-- Export ALL matching results (no page param) -->
+    <a href="{{ url_for('export_json', q=search_query, severity=selected_severity) }}">Export All Results (JSON)</a>
+    <a href="{{ url_for('export_csv', q=search_query, severity=selected_severity) }}">Export All Results (CSV)</a>
   </div>
 
   <!-- SEARCH FORM: submits to /search  and filter for severity-->
   <div style="margin-top: 20px;">
     <form method="get" action="{{ url_for('search') }}">
       <label for="searchInput">🔍 Search: </label>
-      <input type="text" id="searchInput" name="q" placeholder="Search CVE ID or keyword" />
+      <input type="text" id="searchInput" name="q" placeholder="Search CVE ID or keyword" value="{{ search_query | default('') }}" />
       <label for="severity" style="margin-left:15px;">Severity:</label>
       <select id="severity" name="severity">
         <option value="" {% if not selected_severity %}selected{% endif %}>All</option>
@@ -47,13 +50,6 @@
     {% elif error %}
     <div class="error" style="color:red; margin-top:20px; margin-bottom:15px;">
       {{ error }}
-    </div>
-    {% endif %}
-
-
-    {% if selected_severity and selected_severity.upper() == "UNKNOWN" %}
-    <div style="background: #fffbe5; color: #947600; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-    <strong>Note:</strong> Due to API limitations, only a partial set of 'UNKNOWN' severity results is shown.
     </div>
     {% endif %}
 
