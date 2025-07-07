@@ -6,8 +6,8 @@ import json
 
 load_dotenv()
 API_KEY = os.getenv("NVD_API_KEY")
-print("ENV NVD_API_KEY:", os.environ.get("NVD_API_KEY"))
-print("Loaded API_KEY:", API_KEY)
+print(f"[API LOG] NVD API call {API_KEY[:6]}***")
+print(f"Loaded API_KEY: {API_KEY[:6]}***")
 
 NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 BATCH_SIZE = 2000

@@ -67,7 +67,8 @@ tr:hover {
 
 .cve-description {
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 3;  
+  line-clamp: 3;          
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -75,7 +76,6 @@ tr:hover {
   max-width: 700px;
   min-height: 4.5em;
 }
-
 .pagination {
   display: flex;
   justify-content: center;

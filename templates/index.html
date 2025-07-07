@@ -88,7 +88,7 @@
     </tbody>
   </table>
 
-  {% if total_pages > 1 %}
+{% if total_pages > 1 %}
 {% set page_window = 2 %}
 {% set start_page = page - page_window %}
 {% set end_page = page + page_window %}
@@ -135,12 +135,6 @@
       <a href="{{ url_for(request.endpoint, page=total_pages, **extra_args) }}">&raquo;</a>
     {% endif %}
 </div>
-
-
 {% endif %}
-
-
-
-  <!--<script src="{{ url_for('static', filename='main.js') }}"></script> -->
 </body>
 </html>
