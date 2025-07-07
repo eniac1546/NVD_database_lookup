@@ -15,31 +15,28 @@
 ![alt text](images/2.png)
 
 ## Local Development:
-### steps:
-#### Clone the repository
-##### commands:
+### Clone the repository
+#### Commands:
 ###### git clone https://github.com/eniac1546/NVD_database_lookup.git
-cd NVD_database_lookup
-    - step: Create and activate a virtual environment
-      commands:
-        - python3 -m venv .venv
-        - source venv/bin/activate           # On Windows: venv\Scripts\activate
-    - step: Install dependencies
-      commands:
-        - pip install -r requirements.txt
-    - step: Add your NVD API key to a .env file
-      env_file:
-        - NVD_API_KEY=your-nvd-api-key-here
-    - step: Run the application
-      commands:
-        - export FLASK_APP=app.py
-        - flask run --host=0.0.0.0
-      note: 
-        Alternatively, run: python3 app.py
-        Visit: http://localhost:5000/
+###### cd NVD_database_lookup
+## Create and activate a virtual environment
+#### Commands:
+###### python3 -m venv .venv
+###### source venv/bin/activate           -  On Windows: venv\Scripts\activate
+## Install dependencies
+#### Commands:
+###### pip install -r requirements.txt
+## Add your NVD API key to a .env file
+### env_file:
+###### NVD_API_KEY=your-nvd-api-key-here
+## Run the application
+#### Commands:
+###### flask run
+###### Alternatively, run: python3 app.py
+###### Visit: http://localhost:5000/
 
-### production_aws_ec2:
-  steps:
+### Production on EC2:
+
     - step: Create a secret in AWS Secrets Manager
       aws_secrets_manager:
         name: nvd_api_key_secret
