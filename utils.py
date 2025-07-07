@@ -3,11 +3,45 @@ import os
 from dotenv import load_dotenv
 import time
 import json
+import boto3
 
 load_dotenv()
-API_KEY = os.getenv("NVD_API_KEY")
-print(f"[API LOG] NVD API call {API_KEY[:6]}***")
-print(f"Loaded API_KEY: {API_KEY[:6]}***")
+
+def get_secret_api_key(secret_name="nvd_api_key_secret", key="NVD_API_KEY", region="us-east-2"):
+    # Try to get from environment (local or deployment env)
+    api_key = os.getenv(key)
+    if api_key:
+        print(f"[INFO] Loaded API_KEY from environment variable: {api_key[:6]}***")
+        return api_key
+
+    # Try to get from AWS Secrets Manager
+    try:
+        
+        session = boto3.session.Session()
+        client = session.client(service_name='secretsmanager', region_name=region)
+        response = client.get_secret_value(SecretId=secret_name)
+        secret_str = response['SecretString']
+        secret_dict = json.loads(secret_str)
+        api_key = secret_dict.get(key)
+        if api_key:
+            print(f"[INFO] Loaded API_KEY from AWS Secrets Manager: {api_key[:6]}***")
+            return api_key
+        else:
+            print(f"[ERROR] Key '{key}' not found in secret '{secret_name}'")
+    except Exception as e:
+        print(f"[ERROR] Could not load API_KEY from AWS Secrets Manager: {e}")
+
+    # 3. Neither found, fail with error
+    raise RuntimeError(
+        "No NVD API key found! Please set NVD_API_KEY in environment/.env for local dev, "
+        "or configure it in AWS Secrets Manager under the secret name 'nvd_api_key_secret'.")
+
+# API Key Variable:
+API_KEY = get_secret_api_key()
+
+#API_KEY = os.getenv("NVD_API_KEY")
+#print(f"[API LOG] NVD API call {API_KEY[:6]}***")
+#print(f"Loaded API_KEY: {API_KEY[:6]}***")
 
 NVD_API_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 BATCH_SIZE = 2000
